@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Salesforce Bulk Field Creator",
+  "version": "2.0",
+  "description": "Bulk-create custom fields on any Salesforce object directly from the Fields & Relationships page",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "cookies"
+  ],
+  "host_permissions": [
+    "https://*.salesforce.com/*",
+    "https://*.salesforce-setup.com/*",
+    "https://*.force.com/*",
+    "https://*.lightning.force.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.salesforce.com/*",
+        "https://*.salesforce-setup.com/*",
+        "https://*.force.com/*",
+        "https://*.lightning.force.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["modal.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

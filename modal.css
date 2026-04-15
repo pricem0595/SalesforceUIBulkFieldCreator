@@ -1,0 +1,580 @@
+/* Salesforce Bulk Field Creator — Modal & Form Styles
+   All classes prefixed with sfbc- to avoid collisions with the host page. */
+
+/* ─── Overlay ─────────────────────────────────────────────────────────────── */
+
+.sfbc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+  font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: #181818;
+  line-height: 1.5;
+}
+
+/* ─── Modal ───────────────────────────────────────────────────────────────── */
+
+.sfbc-modal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.28);
+  width: 860px;
+  max-width: 95vw;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.sfbc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #0176d3;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sfbc-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sfbc-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.sfbc-subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.sfbc-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+
+.sfbc-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Body (scrollable) ──────────────────────────────────────────────────── */
+
+.sfbc-body {
+  overflow-y: auto;
+  padding: 20px 24px;
+  flex: 1;
+}
+
+/* ─── Field Row ───────────────────────────────────────────────────────────── */
+
+.sfbc-field-row {
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #fafaf9;
+  position: relative;
+}
+
+.sfbc-field-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sfbc-field-num {
+  font-weight: 600;
+  font-size: 12px;
+  color: #706e6b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sfbc-remove-row {
+  background: none;
+  border: none;
+  color: #ba0517;
+  font-size: 18px;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.sfbc-remove-row:hover {
+  background: #fce4e4;
+}
+
+/* Main inputs grid */
+
+.sfbc-field-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr 160px;
+  gap: 10px;
+  align-items: end;
+}
+
+.sfbc-field-checks {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+/* ─── Form Controls ──────────────────────────────────────────────────────── */
+
+.sfbc-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sfbc-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
+.sfbc-label-required::after {
+  content: ' *';
+  color: #ba0517;
+}
+
+.sfbc-input,
+.sfbc-select,
+.sfbc-textarea {
+  padding: 7px 10px;
+  border: 1px solid #c9c7c5;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #181818;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sfbc-input:focus,
+.sfbc-select:focus,
+.sfbc-textarea:focus {
+  outline: none;
+  border-color: #0176d3;
+  box-shadow: 0 0 0 3px rgba(1, 118, 211, 0.15);
+}
+
+.sfbc-textarea {
+  resize: vertical;
+  min-height: 50px;
+}
+
+.sfbc-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sfbc-checkbox-label input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ─── Advanced / Type-specific ────────────────────────────────────────────── */
+
+.sfbc-advanced-toggle {
+  background: none;
+  border: none;
+  color: #0176d3;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sfbc-advanced-toggle:hover {
+  text-decoration: underline;
+}
+
+.sfbc-advanced-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e5e5;
+  display: none;
+}
+
+.sfbc-advanced-section.sfbc-open {
+  display: block;
+}
+
+.sfbc-advanced-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Type-specific fields */
+.sfbc-type-specific {
+  margin-top: 10px;
+}
+
+.sfbc-type-specific-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Picklist values */
+.sfbc-picklist-values {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sfbc-picklist-value-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.sfbc-picklist-value-row input {
+  flex: 1;
+}
+
+.sfbc-remove-value {
+  background: #ba0517;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sfbc-add-value {
+  background: #2e844a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.sfbc-add-value:hover {
+  background: #246a3a;
+}
+
+/* ─── Add Field Button ────────────────────────────────────────────────────── */
+
+.sfbc-add-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #c9c7c5;
+  border-radius: 6px;
+  background: none;
+  color: #706e6b;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  margin-bottom: 20px;
+}
+
+.sfbc-add-field:hover {
+  border-color: #0176d3;
+  color: #0176d3;
+}
+
+/* ─── Permission Sets Section ─────────────────────────────────────────────── */
+
+.sfbc-perm-section {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 16px;
+}
+
+.sfbc-perm-toggle {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #181818;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.sfbc-perm-toggle .sfbc-chevron {
+  transition: transform 0.2s;
+  font-size: 10px;
+}
+
+.sfbc-perm-toggle.sfbc-expanded .sfbc-chevron {
+  transform: rotate(90deg);
+}
+
+.sfbc-perm-body {
+  display: none;
+  margin-top: 12px;
+}
+
+.sfbc-perm-body.sfbc-open {
+  display: block;
+}
+
+.sfbc-perm-search {
+  margin-bottom: 10px;
+}
+
+.sfbc-perm-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+}
+
+.sfbc-perm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+}
+
+.sfbc-perm-item:last-child {
+  border-bottom: none;
+}
+
+.sfbc-perm-item label {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sfbc-perm-access {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #706e6b;
+}
+
+.sfbc-perm-access label {
+  cursor: pointer;
+}
+
+.sfbc-perm-loading {
+  padding: 16px;
+  text-align: center;
+  color: #706e6b;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────────────── */
+
+.sfbc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid #e5e5e5;
+  background: #fafaf9;
+  flex-shrink: 0;
+}
+
+.sfbc-btn {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.sfbc-btn-neutral {
+  background: #fff;
+  color: #0176d3;
+  border-color: #0176d3;
+}
+
+.sfbc-btn-neutral:hover {
+  background: #f3f3f3;
+}
+
+.sfbc-btn-brand {
+  background: #0176d3;
+  color: #fff;
+  border-color: #0176d3;
+}
+
+.sfbc-btn-brand:hover {
+  background: #014486;
+}
+
+.sfbc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Progress / Status ───────────────────────────────────────────────────── */
+
+.sfbc-progress {
+  margin-top: 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sfbc-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.sfbc-progress-item:last-child {
+  border-bottom: none;
+}
+
+.sfbc-status-icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sfbc-status-pending .sfbc-status-icon { color: #706e6b; }
+.sfbc-status-creating .sfbc-status-icon { color: #0176d3; }
+.sfbc-status-success .sfbc-status-icon { color: #2e844a; }
+.sfbc-status-error .sfbc-status-icon { color: #ba0517; }
+
+.sfbc-status-creating .sfbc-status-icon {
+  animation: sfbc-spin 1s linear infinite;
+}
+
+.sfbc-status-msg {
+  flex: 1;
+}
+
+.sfbc-status-detail {
+  font-size: 11px;
+  color: #706e6b;
+}
+
+.sfbc-status-error .sfbc-status-detail {
+  color: #ba0517;
+}
+
+@keyframes sfbc-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Summary bar ─────────────────────────────────────────────────────────── */
+
+.sfbc-summary {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sfbc-summary-success {
+  background: #cde9c6;
+  color: #1b5e20;
+}
+
+.sfbc-summary-partial {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.sfbc-summary-error {
+  background: #fce4e4;
+  color: #ba0517;
+}
+
+/* ─── Injected Page Button ────────────────────────────────────────────────── */
+
+.sfbc-inject-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: #0176d3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.15s;
+  white-space: nowrap;
+  margin-right: 8px;
+  height: 32px;
+  line-height: 1;
+}
+
+.sfbc-inject-btn:hover {
+  background: #014486;
+}
+
+.sfbc-inject-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
