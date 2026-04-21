@@ -583,6 +583,7 @@
 
     let successCount = 0;
     let errorCount = 0;
+    let warnCount = 0;
 
     for (let i = 0; i < fields.length; i++) {
       const f = fields[i];
@@ -604,6 +605,7 @@
         // Field created — now assign permissions
         if (selectedPermSets.length) {
           progItem.querySelector('.sfbc-status-detail').textContent = 'Assigning permissions…';
+          const permErrors = [];
           for (const ps of selectedPermSets) {
             try {
               await sendMsg({
@@ -618,15 +620,26 @@
                 },
               });
             } catch (permErr) {
-              // Non-fatal — log but don't fail the field
-              console.warn(`Permission assignment failed for ${f.apiName} → ${ps.name}:`, permErr.message);
+              permErrors.push(`${ps.name}: ${permErr.message}`);
             }
           }
-        }
 
-        progItem.className = 'sfbc-progress-item sfbc-status-success';
-        progItem.querySelector('.sfbc-status-icon').innerHTML = '&#10003;';
-        progItem.querySelector('.sfbc-status-detail').textContent = 'Created';
+          if (permErrors.length) {
+            progItem.className = 'sfbc-progress-item sfbc-status-warning';
+            progItem.querySelector('.sfbc-status-icon').innerHTML = '&#9888;';
+            progItem.querySelector('.sfbc-status-detail').textContent =
+              `Created, but permissions failed: ${permErrors.join('; ')}`;
+            warnCount++;
+          } else {
+            progItem.className = 'sfbc-progress-item sfbc-status-success';
+            progItem.querySelector('.sfbc-status-icon').innerHTML = '&#10003;';
+            progItem.querySelector('.sfbc-status-detail').textContent = 'Created with permissions';
+          }
+        } else {
+          progItem.className = 'sfbc-progress-item sfbc-status-success';
+          progItem.querySelector('.sfbc-status-icon').innerHTML = '&#10003;';
+          progItem.querySelector('.sfbc-status-detail').textContent = 'Created';
+        }
         successCount++;
 
       } catch (err) {
@@ -644,12 +657,15 @@
 
     // Summary
     const summary = document.getElementById('sfbc-summary');
-    if (errorCount === 0) {
+    if (errorCount === 0 && warnCount === 0) {
       summary.className = 'sfbc-summary sfbc-summary-success';
       summary.textContent = `All ${successCount} field(s) created successfully!`;
+    } else if (errorCount === 0 && warnCount > 0) {
+      summary.className = 'sfbc-summary sfbc-summary-partial';
+      summary.textContent = `${successCount} field(s) created, but ${warnCount} had permission assignment errors.`;
     } else if (successCount > 0) {
       summary.className = 'sfbc-summary sfbc-summary-partial';
-      summary.textContent = `${successCount} created, ${errorCount} failed.`;
+      summary.textContent = `${successCount} created (${warnCount} with permission issues), ${errorCount} failed.`;
     } else {
       summary.className = 'sfbc-summary sfbc-summary-error';
       summary.textContent = `All ${errorCount} field(s) failed.`;

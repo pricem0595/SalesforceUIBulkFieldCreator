@@ -129,7 +129,7 @@ async function createField(sfHost, fieldPayload) {
 // ─── Permission Sets ────────────────────────────────────────────────────────
 
 async function getPermissionSets(sfHost) {
-  const soql = `SELECT Id, Name, Label FROM PermissionSet WHERE IsOwnedByProfile = false ORDER BY Label`;
+  const soql = `SELECT Id, Name, Label FROM PermissionSet WHERE IsOwnedByProfile = false AND Type = 'Regular' ORDER BY Label`;
   return sfQuery(sfHost, soql);
 }
 
@@ -137,6 +137,12 @@ async function getPermissionSets(sfHost) {
 
 async function assignFieldPermissions(sfHost, permPayload) {
   // permPayload: { parentId, sobjectType, field, read, edit }
+
+  // Ensure the permission set has object-level access first.
+  // Without ObjectPermissions the FieldPermissions insert will fail with
+  // "invalid cross reference id".
+  await ensureObjectPermissions(sfHost, permPayload.parentId, permPayload.sobjectType);
+
   const body = {
     ParentId: permPayload.parentId,
     SobjectType: permPayload.sobjectType,
@@ -148,6 +154,34 @@ async function assignFieldPermissions(sfHost, permPayload) {
   return sfApiCall(sfHost, {
     method: 'POST',
     path: '/sobjects/FieldPermissions/',
+    body,
+  });
+}
+
+async function ensureObjectPermissions(sfHost, parentId, sobjectType) {
+  // Check if ObjectPermissions already exist for this permission set + object
+  const soql = `SELECT Id FROM ObjectPermissions WHERE ParentId = '${parentId}' AND SobjectType = '${sobjectType}' LIMIT 1`;
+  const result = await sfQuery(sfHost, soql);
+
+  if (result.records && result.records.length > 0) {
+    return; // already has object access
+  }
+
+  // Create minimal object permissions (read access) so field permissions can be assigned
+  const body = {
+    ParentId: parentId,
+    SobjectType: sobjectType,
+    PermissionsRead: true,
+    PermissionsViewAllRecords: false,
+    PermissionsEdit: false,
+    PermissionsCreate: false,
+    PermissionsDelete: false,
+    PermissionsModifyAllRecords: false,
+  };
+
+  return sfApiCall(sfHost, {
+    method: 'POST',
+    path: '/sobjects/ObjectPermissions/',
     body,
   });
 }

@@ -499,6 +499,7 @@
 .sfbc-status-pending .sfbc-status-icon { color: #706e6b; }
 .sfbc-status-creating .sfbc-status-icon { color: #0176d3; }
 .sfbc-status-success .sfbc-status-icon { color: #2e844a; }
+.sfbc-status-warning .sfbc-status-icon { color: #dd7a01; }
 .sfbc-status-error .sfbc-status-icon { color: #ba0517; }
 
 .sfbc-status-creating .sfbc-status-icon {
@@ -516,6 +517,10 @@
 
 .sfbc-status-error .sfbc-status-detail {
   color: #ba0517;
+}
+
+.sfbc-status-warning .sfbc-status-detail {
+  color: #dd7a01;
 }
 
 @keyframes sfbc-spin {
