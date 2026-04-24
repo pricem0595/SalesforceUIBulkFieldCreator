@@ -12,6 +12,10 @@
   let sfHost = null;              // e.g. "myorg.lightning.force.com"
   let fieldCounter = 0;
   let permissionSetsCache = null;
+  let permissionSetObjectAccessIds = null;
+  let permissionSetObjectAccessForObject = null;
+  let objectAccessFilterEnabled = true;
+  const selectedPermSetMap = new Map();
 
   // ─── Page Detection ─────────────────────────────────────────────────────
 
@@ -100,6 +104,10 @@
     resolvedObjectApi = null;
     fieldCounter = 0;
     permissionSetsCache = null;
+    permissionSetObjectAccessIds = null;
+    permissionSetObjectAccessForObject = null;
+    objectAccessFilterEnabled = true;
+    selectedPermSetMap.clear();
 
     const overlay = document.createElement('div');
     overlay.id = MODAL_ID;
@@ -113,9 +121,11 @@
     overlay.querySelector('.sfbc-close').addEventListener('click', closeModal);
     overlay.querySelector('#sfbc-cancel-btn').addEventListener('click', closeModal);
     overlay.querySelector('#sfbc-add-field-btn').addEventListener('click', () => addFieldRow());
-    overlay.querySelector('#sfbc-create-btn').addEventListener('click', handleCreate);
+    overlay.querySelector('#sfbc-create-btn').onclick = handleCreate;
     overlay.querySelector('#sfbc-perm-toggle').addEventListener('click', togglePermSection);
     overlay.querySelector('#sfbc-perm-search').addEventListener('input', filterPermSets);
+    overlay.querySelector('#sfbc-object-access-toggle').addEventListener('click', toggleObjectAccessFilter);
+    overlay.querySelector('#sfbc-perm-list').addEventListener('change', handlePermListChange);
 
     // Keyboard — Escape closes
     overlay._keyHandler = e => { if (e.key === 'Escape') closeModal(); };
@@ -151,6 +161,11 @@
               Assign to Permission Sets
             </button>
             <div class="sfbc-perm-body" id="sfbc-perm-body">
+              <div class="sfbc-perm-filter-row">
+                <button type="button" class="sfbc-filter-toggle sfbc-on" id="sfbc-object-access-toggle" aria-pressed="true">
+                  Showing: permission sets with object access
+                </button>
+              </div>
               <input type="text" class="sfbc-input sfbc-perm-search" id="sfbc-perm-search" placeholder="Filter permission sets…">
               <div class="sfbc-perm-list" id="sfbc-perm-list">
                 <div class="sfbc-perm-loading">Loading permission sets…</div>
@@ -188,9 +203,11 @@
       resolvedObjectApi = result.objectApiName;
       const label = document.getElementById('sfbc-object-label');
       if (label) label.textContent = `Object: ${resolvedObjectApi}`;
+      applyPermSetFilters();
     } catch (err) {
       // If resolution fails, use the raw value from the URL
       resolvedObjectApi = currentObjectId;
+      applyPermSetFilters();
     }
   }
 
@@ -203,7 +220,7 @@
     try {
       const result = await sendMsg({ action: 'getPermissionSets', sfHost });
       permissionSetsCache = result.records || [];
-      renderPermSets(permissionSetsCache);
+      applyPermSetFilters();
     } catch (err) {
       list.innerHTML = `<div class="sfbc-perm-loading" style="color:#ba0517">Failed to load: ${escapeHtml(err.message)}</div>`;
     }
@@ -218,19 +235,100 @@
     }
     list.innerHTML = sets.map(ps => `
       <div class="sfbc-perm-item">
-        <label><input type="checkbox" data-ps-id="${escapeAttr(ps.Id)}" data-ps-name="${escapeAttr(ps.Label)}"> ${escapeHtml(ps.Label)}</label>
+        <label><input type="checkbox" data-ps-id="${escapeAttr(ps.Id)}" data-ps-name="${escapeAttr(ps.Label)}" ${selectedPermSetMap.has(ps.Id) ? 'checked' : ''}> ${escapeHtml(ps.Label)}</label>
         <div class="sfbc-perm-access">
           <label><input type="checkbox" data-access="read" checked disabled> Read</label>
-          <label><input type="checkbox" data-access="edit"> Edit</label>
+          <label><input type="checkbox" data-access="edit" ${selectedPermSetMap.get(ps.Id)?.edit ? 'checked' : ''}> Edit</label>
         </div>
       </div>
     `).join('');
   }
 
   function filterPermSets() {
-    const q = (document.getElementById('sfbc-perm-search')?.value || '').toLowerCase();
-    if (!permissionSetsCache) return;
-    renderPermSets(permissionSetsCache.filter(ps => ps.Label.toLowerCase().includes(q)));
+    applyPermSetFilters();
+  }
+
+  async function ensureObjectAccessIdsLoaded() {
+    if (!resolvedObjectApi) return;
+    if (permissionSetObjectAccessForObject === resolvedObjectApi && permissionSetObjectAccessIds) return;
+
+    const result = await sendMsg({ action: 'getPermissionSetObjectAccessIds', sfHost, sobjectType: resolvedObjectApi });
+    permissionSetObjectAccessIds = new Set(result.parentIds || []);
+    permissionSetObjectAccessForObject = resolvedObjectApi;
+  }
+
+  async function applyPermSetFilters() {
+    const list = document.getElementById('sfbc-perm-list');
+    if (!list || !permissionSetsCache) return;
+
+    try {
+      let sets = permissionSetsCache;
+      const q = (document.getElementById('sfbc-perm-search')?.value || '').toLowerCase();
+
+      if (objectAccessFilterEnabled) {
+        if (!resolvedObjectApi) {
+          list.innerHTML = '<div class="sfbc-perm-loading">Resolving object name…</div>';
+          return;
+        }
+        await ensureObjectAccessIdsLoaded();
+        sets = sets.filter(ps => permissionSetObjectAccessIds.has(ps.Id));
+      }
+
+      if (q) {
+        sets = sets.filter(ps => ps.Label.toLowerCase().includes(q));
+      }
+
+      renderPermSets(sets);
+    } catch (err) {
+      list.innerHTML = `<div class="sfbc-perm-loading" style="color:#ba0517">Failed to filter permission sets: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function toggleObjectAccessFilter() {
+    objectAccessFilterEnabled = !objectAccessFilterEnabled;
+    const btn = document.getElementById('sfbc-object-access-toggle');
+    if (btn) {
+      btn.classList.toggle('sfbc-on', objectAccessFilterEnabled);
+      btn.classList.toggle('sfbc-off', !objectAccessFilterEnabled);
+      btn.setAttribute('aria-pressed', objectAccessFilterEnabled ? 'true' : 'false');
+      btn.textContent = objectAccessFilterEnabled
+        ? 'Showing: permission sets with object access'
+        : 'Showing: all permission sets';
+    }
+    applyPermSetFilters();
+  }
+
+  function handlePermListChange(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+
+    if (target.dataset.psId) {
+      const row = target.closest('.sfbc-perm-item');
+      const editCb = row ? row.querySelector('input[data-access="edit"]') : null;
+      const id = target.dataset.psId;
+
+      if (target.checked) {
+        selectedPermSetMap.set(id, {
+          parentId: id,
+          name: target.dataset.psName || '',
+          edit: !!editCb?.checked,
+        });
+      } else {
+        selectedPermSetMap.delete(id);
+      }
+      return;
+    }
+
+    if (target.dataset.access === 'edit') {
+      const row = target.closest('.sfbc-perm-item');
+      const mainCb = row ? row.querySelector('input[data-ps-id]') : null;
+      if (!mainCb || !mainCb.dataset.psId) return;
+
+      const selected = selectedPermSetMap.get(mainCb.dataset.psId);
+      if (selected) {
+        selected.edit = target.checked;
+      }
+    }
   }
 
   function togglePermSection() {
@@ -242,16 +340,7 @@
   }
 
   function getSelectedPermSets() {
-    const items = document.querySelectorAll('#sfbc-perm-list input[data-ps-id]:checked');
-    return Array.from(items).map(cb => {
-      const row = cb.closest('.sfbc-perm-item');
-      const editCb = row.querySelector('input[data-access="edit"]');
-      return {
-        parentId: cb.dataset.psId,
-        name: cb.dataset.psName,
-        edit: editCb ? editCb.checked : false,
-      };
-    });
+    return Array.from(selectedPermSetMap.values());
   }
 
   // ─── Field Rows ────────────────────────────────────────────────────────
@@ -602,8 +691,10 @@
           fieldPayload: { fullName, metadata: f.metadata },
         });
 
-        // Field created — now assign permissions
-        if (selectedPermSets.length) {
+        // Field created — now assign permissions.
+        // Required fields get read+edit automatically at the platform level;
+        // POSTing a FieldPermissions record for them raises an error.
+        if (selectedPermSets.length && !f.metadata.required) {
           progItem.querySelector('.sfbc-status-detail').textContent = 'Assigning permissions…';
           const permErrors = [];
           for (const ps of selectedPermSets) {
@@ -638,7 +729,10 @@
         } else {
           progItem.className = 'sfbc-progress-item sfbc-status-success';
           progItem.querySelector('.sfbc-status-icon').innerHTML = '&#10003;';
-          progItem.querySelector('.sfbc-status-detail').textContent = 'Created';
+          progItem.querySelector('.sfbc-status-detail').textContent =
+            f.metadata.required && selectedPermSets.length
+              ? 'Created (read+edit auto-applied — field is required)'
+              : 'Created';
         }
         successCount++;
 
@@ -671,12 +765,40 @@
       summary.textContent = `All ${errorCount} field(s) failed.`;
     }
 
-    // Re-enable cancel (as "Close") and add refresh button
+    // Re-enable cancel (as "Close") and swap create button to "Clear Form"
     cancelBtn.disabled = false;
     cancelBtn.textContent = 'Close';
-    createBtn.textContent = 'Refresh Page';
+    createBtn.textContent = 'Clear Form';
     createBtn.disabled = false;
-    createBtn.onclick = () => { location.reload(); };
+    createBtn.onclick = () => {
+      // Reset progress area
+      const progressArea = document.getElementById('sfbc-progress-area');
+      const progressList = document.getElementById('sfbc-progress-list');
+      const summaryEl = document.getElementById('sfbc-summary');
+      if (progressArea) progressArea.style.display = 'none';
+      if (progressList) progressList.innerHTML = '';
+      if (summaryEl) { summaryEl.className = ''; summaryEl.textContent = ''; }
+
+      // Clear all field rows and add a fresh one
+      const fieldsContainer = document.getElementById('sfbc-fields-container');
+      if (fieldsContainer) fieldsContainer.innerHTML = '';
+      fieldCounter = 0;
+      addFieldRow();
+
+      // Show Add Field button again
+      const addBtn = document.getElementById('sfbc-add-field-btn');
+      if (addBtn) addBtn.style.display = '';
+
+      // Reset footer buttons
+      cancelBtn.textContent = 'Cancel';
+      createBtn.textContent = 'Create Fields';
+      createBtn.disabled = false;
+      createBtn.onclick = handleCreate;
+
+      // Clear selected permission sets
+      selectedPermSetMap.clear();
+      applyPermSetFilters();
+    };
   }
 
   // ─── Utilities ─────────────────────────────────────────────────────────

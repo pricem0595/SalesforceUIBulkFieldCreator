@@ -20,6 +20,8 @@ async function handleMessage(msg, sender) {
       return createField(msg.sfHost, msg.fieldPayload);
     case 'getPermissionSets':
       return getPermissionSets(msg.sfHost);
+    case 'getPermissionSetObjectAccessIds':
+      return getPermissionSetObjectAccessIds(msg.sfHost, msg.sobjectType);
     case 'assignFieldPermissions':
       return assignFieldPermissions(msg.sfHost, msg.permPayload);
     default:
@@ -131,6 +133,13 @@ async function createField(sfHost, fieldPayload) {
 async function getPermissionSets(sfHost) {
   const soql = `SELECT Id, Name, Label FROM PermissionSet WHERE IsOwnedByProfile = false AND Type = 'Regular' ORDER BY Label`;
   return sfQuery(sfHost, soql);
+}
+
+async function getPermissionSetObjectAccessIds(sfHost, sobjectType) {
+  const soql = `SELECT ParentId FROM ObjectPermissions WHERE SobjectType = '${sobjectType}'`;
+  const result = await sfQuery(sfHost, soql);
+  const ids = new Set((result.records || []).map(r => r.ParentId).filter(Boolean));
+  return { parentIds: Array.from(ids) };
 }
 
 // ─── Field Permissions ──────────────────────────────────────────────────────

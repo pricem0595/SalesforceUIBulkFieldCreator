@@ -370,6 +370,32 @@
   display: block;
 }
 
+.sfbc-perm-filter-row {
+  margin-bottom: 8px;
+}
+
+.sfbc-filter-toggle {
+  border: 1px solid #c9c7c5;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #fff;
+  color: #181818;
+}
+
+.sfbc-filter-toggle.sfbc-on {
+  border-color: #2e844a;
+  background: #edf9f0;
+  color: #1f5f34;
+}
+
+.sfbc-filter-toggle.sfbc-off {
+  border-color: #706e6b;
+  background: #f3f2f2;
+  color: #514f4d;
+}
+
 .sfbc-perm-search {
   margin-bottom: 10px;
 }
