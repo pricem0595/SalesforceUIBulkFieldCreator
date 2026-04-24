@@ -119,7 +119,12 @@
 
     // Bind events
     overlay.querySelector('.sfbc-close').addEventListener('click', closeModal);
-    overlay.querySelector('#sfbc-cancel-btn').addEventListener('click', closeModal);
+    overlay.querySelector('#sfbc-cancel-btn').addEventListener('click', () => {
+      const btn = document.getElementById('sfbc-cancel-btn');
+      const shouldReload = btn && btn.textContent.trim() === 'Close';
+      closeModal();
+      if (shouldReload) location.reload();
+    });
     overlay.querySelector('#sfbc-add-field-btn').addEventListener('click', () => addFieldRow());
     overlay.querySelector('#sfbc-create-btn').onclick = handleCreate;
     overlay.querySelector('#sfbc-perm-toggle').addEventListener('click', togglePermSection);
@@ -323,6 +328,17 @@
       const row = target.closest('.sfbc-perm-item');
       const mainCb = row ? row.querySelector('input[data-ps-id]') : null;
       if (!mainCb || !mainCb.dataset.psId) return;
+
+      // Auto-check the permission set when Edit is ticked
+      if (target.checked && !mainCb.checked) {
+        mainCb.checked = true;
+        selectedPermSetMap.set(mainCb.dataset.psId, {
+          parentId: mainCb.dataset.psId,
+          name: mainCb.dataset.psName || '',
+          edit: true,
+        });
+        return;
+      }
 
       const selected = selectedPermSetMap.get(mainCb.dataset.psId);
       if (selected) {
